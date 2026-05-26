@@ -1,5 +1,6 @@
 .env
 /backend/.env
 /backend/target/
+/backend/data/
 /backend/db/data/venta_libre.db
 dossier-projet/
