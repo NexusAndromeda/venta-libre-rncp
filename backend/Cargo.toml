@@ -1,9 +1,13 @@
 [package]
-name "ventalibre-server"
+name = "ventalibre-server"
 version = "0.1.0"
 edition = "2021"
 description = "REST API for Venta Libre"
 default-run = "venta-libre-server"
+
+[lib]
+name = "ventalibre_server"
+path = "src/lib.rs"
 
 [[bin]]
 name = "venta-libre-server"
