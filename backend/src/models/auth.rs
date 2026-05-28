@@ -24,6 +24,7 @@ pub enum AuthError {
     UserInactive,
     VerificationError,
     Database,
+    Forbidden,
 }
 
 pub async fn register(

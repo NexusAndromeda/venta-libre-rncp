@@ -1,9 +1,10 @@
 use axum::extract::State;
-use axum::http::{HeaderMap, StatusCode};
+use axum::http::StatusCode;
 use axum::routing::{get, post};
 use axum::Json;
 use serde_json::{json, Value};
 
+use crate::auth_util::AuthUser;
 use crate::error::{map_auth_error, ApiError};
 use crate::models::auth;
 use crate::state::AppState;
@@ -37,16 +38,8 @@ async fn login(
     Ok(Json(serde_json::to_value(out).unwrap()))
 }
 
-async fn me(State(state): State<AppState>, headers: HeaderMap) -> Result<Json<Value>, ApiError> {
-    let auth_header = headers
-        .get("authorization")
-        .and_then(|v| v.to_str().ok());
-
-    let user = auth::resolve_bearer(&state.pool, &state.config, auth_header)
-        .await
-        .map_err(map_auth_error)?;
-
-    Ok(Json(serde_json::to_value(to_public_user(&user)).unwrap()))
+async fn me(AuthUser(user): AuthUser) -> Json<Value> {
+    Json(serde_json::to_value(to_public_user(&user)).unwrap())
 }
 
 async fn logout() -> Json<Value> {

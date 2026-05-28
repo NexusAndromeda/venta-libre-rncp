@@ -103,6 +103,11 @@ pub fn map_auth_error(err: AuthError) -> ApiError {
             "database_error",
             "Error de base de datos",
         ),
+        AuthError::Forbidden => (
+            StatusCode::FORBIDDEN,
+            "forbidden",
+            "Acción no permitida",
+        ),
     };
     ApiError::new(status, error, message)
 }
