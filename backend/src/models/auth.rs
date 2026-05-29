@@ -24,7 +24,56 @@ pub enum AuthError {
     UserInactive,
     VerificationError,
     Database,
-    Forbidden,
+}
+
+fn map_user_row(row: &sqlx::sqlite::SqliteRow) -> Result<UserRow, sqlx::Error> {
+    Ok(user_from_sql(
+        row.try_get(0)?,
+        row.try_get(1)?,
+        row.try_get(2)?,
+        row.try_get(3)?,
+        row.try_get(4)?,
+        row.try_get(5)?,
+        row.try_get(6)?,
+        row.try_get(7)?,
+    ))
+}
+
+async fn fetch_active_user_by_id(pool: &DbPool, user_id: &str) -> Result<Option<UserRow>, sqlx::Error> {
+    let row = sqlx::query(
+        "SELECT id, email, display_name, password_hash, is_active, is_admin, created_at, updated_at
+         FROM users WHERE id = ? AND is_active = 1",
+    )
+    .bind(user_id)
+    .fetch_optional(pool)
+    .await?;
+
+    row.as_ref().map(map_user_row).transpose()
+}
+
+async fn fetch_user_by_email(pool: &DbPool, email: &str) -> Result<Option<UserRow>, sqlx::Error> {
+    let row = sqlx::query(
+        "SELECT id, email, display_name, password_hash, is_active, is_admin, created_at, updated_at
+         FROM users WHERE email = ?",
+    )
+    .bind(email)
+    .fetch_optional(pool)
+    .await?;
+
+    row.as_ref().map(map_user_row).transpose()
+}
+
+fn validate_register(request: &RegisterRequest) -> Option<AuthError> {
+    if request.name.trim().is_empty() {
+        return Some(AuthError::InvalidName);
+    }
+    if !request.email.trim().contains('@') {
+        return Some(AuthError::InvalidEmail);
+    }
+    if request.password.len() < 6 {
+        return Some(AuthError::WeakPassword);
+    }
+    None
 }
 
 pub async fn register(
@@ -118,54 +167,4 @@ pub async fn resolve_bearer(
         .await
         .map_err(|_| AuthError::Database)?
         .ok_or(AuthError::UserNotFound)
-}
-
-fn validate_register(request: &RegisterRequest) -> Option<AuthError> {
-    if request.name.trim().is_empty() {
-        return Some(AuthError::InvalidName);
-    }
-    if !request.email.trim().contains('@') {
-        return Some(AuthError::InvalidEmail);
-    }
-    if request.password.len() < 6 {
-        return Some(AuthError::WeakPassword);
-    }
-    None
-}
-
-async fn fetch_active_user_by_id(pool: &DbPool, user_id: &str) -> Result<Option<UserRow>, sqlx::Error> {
-    let row = sqlx::query(
-        "SELECT id, email, display_name, password_hash, is_active, is_admin, created_at, updated_at
-         FROM users WHERE id = ? AND is_active = 1",
-    )
-    .bind(user_id)
-    .fetch_optional(pool)
-    .await?;
-
-    row.as_ref().map(map_user_row).transpose()
-}
-
-async fn fetch_user_by_email(pool: &DbPool, email: &str) -> Result<Option<UserRow>, sqlx::Error> {
-    let row = sqlx::query(
-        "SELECT id, email, display_name, password_hash, is_active, is_admin, created_at, updated_at
-         FROM users WHERE email = ?",
-    )
-    .bind(email)
-    .fetch_optional(pool)
-    .await?;
-
-    row.as_ref().map(map_user_row).transpose()
-}
-
-fn map_user_row(row: &sqlx::sqlite::SqliteRow) -> Result<UserRow, sqlx::Error> {
-    Ok(user_from_sql(
-        row.try_get(0)?,
-        row.try_get(1)?,
-        row.try_get(2)?,
-        row.try_get(3)?,
-        row.try_get(4)?,
-        row.try_get(5)?,
-        row.try_get(6)?,
-        row.try_get(7)?,
-    ))
 }

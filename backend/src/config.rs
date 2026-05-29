@@ -26,18 +26,13 @@ pub struct AppConfig {
 }
 
 impl AppConfig {
-
     pub fn load() -> Result<Self, String> {
         dotenv().ok();
 
         let port = env_parse("PORT", "PORT must be a valid integer")?;
         let host = env_parse("HOST", "HOST must be a valid IP address")?;
-        let jwt_expiration_hours =
-            env_parse("JWT_EXPIRATION_HOURS", "JWT_EXPIRATION_HOURS must be a valid integer")?;
-        let cors_allowed_origin = env_parse(
-            "CORS_ALLOWED_ORIGIN",
-            "CORS_ALLOWED_ORIGIN must be a valid origin (e.g. http://localhost:8080)",
-        )?;
+        let jwt_expiration_hours = env_parse("JWT_EXPIRATION_HOURS", "JWT_EXPIRATION_HOURS must be a valid integer")?;
+        let cors_allowed_origin = env_parse("CORS_ALLOWED_ORIGIN", "CORS_ALLOWED_ORIGIN must be a valid origin")?;
 
         Ok(Self {
             host,

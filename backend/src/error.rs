@@ -18,6 +18,14 @@ impl ApiError {
             body: json!({ "error": error, "message": message }),
         }
     }
+
+    pub fn forbidden() -> Self {
+        Self::new(
+            StatusCode::FORBIDDEN,
+            "forbidden",
+            "Acción no permitida",
+        )
+    }
 }
 
 impl IntoResponse for ApiError {
@@ -102,11 +110,6 @@ pub fn map_auth_error(err: AuthError) -> ApiError {
             StatusCode::INTERNAL_SERVER_ERROR,
             "database_error",
             "Error de base de datos",
-        ),
-        AuthError::Forbidden => (
-            StatusCode::FORBIDDEN,
-            "forbidden",
-            "Acción no permitida",
         ),
     };
     ApiError::new(status, error, message)

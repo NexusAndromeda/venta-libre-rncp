@@ -2,7 +2,7 @@ use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation}
 use serde::{Deserialize, Serialize};
 
 use crate::config::AppConfig;
-use crate::util::types::{AuthResponse, UserRow, to_public_user};
+use crate::util::types::{to_public_user, AuthResponse, UserRow};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -12,6 +12,13 @@ pub struct Claims {
     is_admin: bool,
     exp: i64,
     iat: i64,
+}
+
+fn unix_now() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0)
 }
 
 pub fn extract_bearer(auth_header: Option<&str>) -> Option<String> {
@@ -56,11 +63,4 @@ pub fn auth_response_for_user(user: &UserRow, config: &AppConfig) -> Result<Auth
         user: to_public_user(user),
         expires_at: now + config.jwt_expiration_hours * 3600,
     })
-}
-
-fn unix_now() -> i64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs() as i64)
-        .unwrap_or(0)
 }

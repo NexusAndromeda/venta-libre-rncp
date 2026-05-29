@@ -4,19 +4,11 @@ use axum::routing::{get, post};
 use axum::Json;
 use serde_json::{json, Value};
 
-use crate::auth_util::AuthUser;
 use crate::error::{map_auth_error, ApiError};
+use crate::middleware::auth::AuthUser;
 use crate::models::auth;
 use crate::state::AppState;
 use crate::util::types::{to_public_user, LoginRequest, RegisterRequest};
-
-pub fn router() -> axum::Router<AppState> {
-    axum::Router::new()
-        .route("/register", post(register))
-        .route("/login", post(login))
-        .route("/me", get(me))
-        .route("/logout", post(logout))
-}
 
 async fn register(
     State(state): State<AppState>,
@@ -44,4 +36,12 @@ async fn me(AuthUser(user): AuthUser) -> Json<Value> {
 
 async fn logout() -> Json<Value> {
     Json(json!({ "message": "Sesión cerrada exitosamente" }))
+}
+
+pub fn router() -> axum::Router<AppState> {
+    axum::Router::new()
+        .route("/register", post(register))
+        .route("/login", post(login))
+        .route("/me", get(me))
+        .route("/logout", post(logout))
 }
